@@ -29,6 +29,8 @@ public class SpaceshipController : MonoBehaviour
             AccLeft();
         else if (Input.GetKey(KeyCode.RightArrow))
             AccRight();
+        else
+            AccStop();
 
         //회전. //
         angVel = angVel + angAcc * Time.fixedDeltaTime;
@@ -37,6 +39,10 @@ public class SpaceshipController : MonoBehaviour
             sAng = -sAng;
 
         transform.Rotate(Vector3.up, sAng * Time.fixedDeltaTime * Mathf.Rad2Deg);
+
+        //이동. //
+        vel = vel + acc * Time.fixedDeltaTime;
+        transform.position = transform.position + vel * Time.fixedDeltaTime + 0.5f * acc * Time.fixedDeltaTime * Time.fixedDeltaTime;
     }
 
     private void TurnLeft()
@@ -63,17 +69,45 @@ public class SpaceshipController : MonoBehaviour
 
     private void AccForward()
     {
+        Vector3 power = transform.forward;
+        acc = power / mass;
     }
 
     private void AccBack()
     {
+        Vector3 power = -transform.forward;
+        acc = power / mass;
     }
 
     private void AccLeft()
     {
+        Vector3 power = -transform.right;
+        acc = power / mass;
     }
 
     private void AccRight()
     {
+        Vector3 power = transform.right;
+        acc = power / mass;
+    }
+
+    private void AccStop()
+    {
+        acc = Vector3.zero;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, transform.position + acc * 100f);
+
+        Gizmos.color = Color.black;
+        Gizmos.DrawLine(transform.position, transform.position + angAcc * 100f);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(transform.position, transform.position + vel * 10f);
+
+        Gizmos.color = Color.white;
+        Gizmos.DrawLine(transform.position, transform.position + angVel * 10f);
     }
 }
