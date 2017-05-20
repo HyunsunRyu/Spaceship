@@ -105,9 +105,9 @@ public class SpaceshipController : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + angAcc * 100f);
 
         Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, transform.position + vel * 10f);
+        Gizmos.DrawLine(transform.position, transform.position + vel * 100f);
 
         Gizmos.color = Color.white;
-        Gizmos.DrawLine(transform.position, transform.position + angVel * 10f);
+        Gizmos.DrawLine(transform.position, transform.position + angVel * 100f);
     }
 }
