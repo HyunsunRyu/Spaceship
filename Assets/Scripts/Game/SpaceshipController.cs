@@ -8,6 +8,16 @@ public class SpaceshipController : MonoBehaviour
     private float mass = 10f;
     private float range = 1f;
 
+    private void Awake()
+    {
+        Joystick.Instance.SetJoystickMovement(Move);
+    }
+
+    private void Move(Vector2 move)
+    {
+        Debug.Log(move.x + " : " + move.y + " // " + move.magnitude);
+    }
+
     public void Init()
     {
     }

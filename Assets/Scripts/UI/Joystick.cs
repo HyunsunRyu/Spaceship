@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using System;
 
 [RequireComponent(typeof(RectTransform))]
-public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+public class Joystick : Singleton<Joystick>, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     public RectTransform handle;
     public Vector2 autoReturnSpeed = new Vector2(4.0f, 4.0f);
