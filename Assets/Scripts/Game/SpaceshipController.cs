@@ -6,10 +6,6 @@ public class SpaceshipController : MonoBehaviour
 {
     //힘. //
     private Vector3 thrust, torque;
-    //가속도. //
-    private Vector3 acc, angAcc;
-    //속도. //
-    private Vector3 vel, angVel;
     
     public class Spaceship
     {
@@ -17,19 +13,51 @@ public class SpaceshipController : MonoBehaviour
         public List<Thrust> thrusts;
 
         //모든 엔진의 최대 출력 합. //
-        public float maxPower = 100f;
+        public float maxPower;
         //모든 출력체로 얻어지는 출력량. //
-        public float maxForwardThrust = 100f;
-        public float maxBackThrust = 20f;
-        public float maxLeftTorque = 10f;
-        public float maxRightTorque = 10f;
+        public float maxForwardThrust;
+        public float maxBackThrust;
+        public float maxLeftTorque;
+        public float maxRightTorque;
         //모든 파츠의 무게 합. //
-        public float mass = 10f;
+        public float mass;
         //최종 우주선 형태의 크기. //
-        public float sizeX = 1f;
-        public float sizeZ = 1f;
+        public float sizeX;
+        public float sizeZ;
         //관성 모멘트. //
-        public float inertiaMoment = 5f / 3f;   //I = m / 12 * (Mathf.Pow(sizeX, 2f) * Mathf.Pow(sizeZ, 2f));
+        public float inertiaMoment;
+
+        public Vector3 vel;
+        public float angVel;
+
+        public Spaceship()
+        {
+            maxPower = 100f;
+            sizeX = 1f;
+            sizeZ = 1f;
+            mass = 10f;
+            maxForwardThrust = 10f;
+            maxBackThrust = 20f;
+            maxLeftTorque = 0.1f;
+            maxRightTorque = 0.1f;
+            inertiaMoment = mass / 12f * (Mathf.Pow(sizeX, 2f) + Mathf.Pow(sizeZ, 2f));
+
+            vel = Vector3.zero;
+            angVel = 0f;
+        }
+
+        public Vector3 GetNextVelocity(Vector3 thrust)
+        {
+            return Mathf.Sqrt(2f / mass * thrust.magnitude + Mathf.Pow(vel.magnitude, 2f)) * thrust.normalized;
+        }
+
+        public float GetNextAngVel(Vector3 torque)
+        {
+            float angVelScal = Mathf.Sqrt(2f / inertiaMoment * torque.magnitude + Mathf.Pow(angVel, 2f));
+            if (torque.x < 0f)
+                angVelScal = -angVelScal;
+            return angVelScal;
+        }
     }
 
     //엔진. 에너지를 발생하는 장치. //
@@ -76,42 +104,25 @@ public class SpaceshipController : MonoBehaviour
             torque = Vector3.right * spaceshipData.maxLeftTorque * move.x;
         else
             torque = Vector3.zero;
-
-        acc = thrust / spaceshipData.mass;
-        //angAcc = 2f * torque / (spaceshipData.mass * spaceshipData.range * spaceshipData.range);
     }
     
     private void FixedUpdate()
     {
-        if (Input.GetKey(KeyCode.A))
-            TurnLeft();
-        else if (Input.GetKey(KeyCode.D))
-            TurnRight();
-        else
-            TurnStop();
+        Vector3 iVel = spaceshipData.vel;
+        Vector3 fVel = spaceshipData.GetNextVelocity(thrust);
+        spaceshipData.vel = fVel;
 
-        if (Input.GetKey(KeyCode.UpArrow))
-            AccForward();
-        else if (Input.GetKey(KeyCode.DownArrow))
-            AccBack();
-        else if (Input.GetKey(KeyCode.LeftArrow))
-            AccLeft();
-        else if (Input.GetKey(KeyCode.RightArrow))
-            AccRight();
-        else
-            AccStop();
+        Vector3 acc = (fVel - iVel) / Time.fixedDeltaTime;
+
+        float iAngVel = spaceshipData.angVel;
+        float fAngVel = spaceshipData.GetNextAngVel(torque);
+        spaceshipData.angVel = fAngVel;
 
         //회전. //
-        angVel = angVel + angAcc * Time.fixedDeltaTime;
-        float sAng = angVel.magnitude;
-        if (Vector3.Cross(angVel, Vector3.forward).y > 0f)
-            sAng = -sAng;
-
-        transform.Rotate(Vector3.up, sAng * Time.fixedDeltaTime * Mathf.Rad2Deg);
+        transform.Rotate(Vector3.up, spaceshipData.angVel * Time.fixedDeltaTime * Mathf.Rad2Deg);
 
         //이동. //
-        vel = vel + acc * Time.fixedDeltaTime;
-        transform.position = transform.position + vel * Time.fixedDeltaTime + 0.5f * acc * Time.fixedDeltaTime * Time.fixedDeltaTime;
+        transform.position = transform.position + fVel * Time.fixedDeltaTime + 0.5f * acc * Time.fixedDeltaTime * Time.fixedDeltaTime;
     }
 
     private void TurnLeft()
@@ -162,21 +173,21 @@ public class SpaceshipController : MonoBehaviour
 
     private void AccStop()
     {
-        acc = Vector3.zero;
+        //acc = Vector3.zero;
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + acc * 100f);
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawLine(transform.position, transform.position + acc * 100f);
 
-        Gizmos.color = Color.black;
-        Gizmos.DrawLine(transform.position, transform.position + angAcc * 100f);
+    //    Gizmos.color = Color.black;
+    //    Gizmos.DrawLine(transform.position, transform.position + angAcc * 100f);
 
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, transform.position + vel * 100f);
+    //    Gizmos.color = Color.blue;
+    //    Gizmos.DrawLine(transform.position, transform.position + vel * 100f);
 
-        Gizmos.color = Color.white;
-        Gizmos.DrawLine(transform.position, transform.position + angVel * 100f);
-    }
+    //    Gizmos.color = Color.white;
+    //    Gizmos.DrawLine(transform.position, transform.position + angVel * 100f);
+    //}
 }
